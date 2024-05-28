@@ -11,7 +11,7 @@ from sklearn.linear_model import LogisticRegression
 import joblib
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-path = 'C:/Users/kritt/Documents/GitHub/Intro-to-Natural-Language-Processing/sentimental_analysis/'
+path = 'C:/Users/kritt/Documents/GitHub/Intro-to-Natural-Language-Processing/sentimental-analysis/'
 dataset = pd.read_csv(path + 'a1_RestaurantReviews_HistoricDump.tsv', delimiter = '\t', quoting = 3)
 
 '''
