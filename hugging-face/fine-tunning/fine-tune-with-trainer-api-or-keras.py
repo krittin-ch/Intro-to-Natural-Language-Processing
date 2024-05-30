@@ -36,7 +36,7 @@ model = AutoModelForSequenceClassification.from_pretrained(checkpoint, num_label
 
 '''
 
-# We didn’t tell the Trainer to evaluate during training by setting evaluation_strategy to either "steps" (evaluate every eval_steps) or "epoch" (evaluate at the end of each epoch).
+# We didn'  t tell the Trainer to evaluate during training by setting evaluation_strategy to either "steps" (evaluate every eval_steps) or "epoch" (evaluate at the end of each epoch).
 training_args = TrainingArguments("test-trainer")
 
 

@@ -6,18 +6,18 @@ from tqdm.auto import tqdm
 import evaluate
 from accelerate import notebook_launcher
 
+def tokenize_function(example):
+    return tokenizer(example["sentence1"], example["sentence2"], truncation=True)
 
 raw_datasets = load_dataset("glue", "mrpc")
 checkpoint = "bert-base-uncased"
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-
-
-def tokenize_function(example):
-    return tokenizer(example["sentence1"], example["sentence2"], truncation=True)
-
-
 tokenized_datasets = raw_datasets.map(tokenize_function, batched=True)
 data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+
+# Make the training set smaller
+# indices_to_remove = range(1001, 3600)
+# tokenized_datasets['train'] = tokenized_datasets['train'].filter(lambda example, idx: idx not in indices_to_remove, with_indices=True)
 
 tokenized_datasets = tokenized_datasets.remove_columns(["sentence1", "sentence2", "idx"])
 tokenized_datasets = tokenized_datasets.rename_column("label", "labels")
@@ -31,11 +31,8 @@ train_dataloader = DataLoader(
 eval_dataloader = DataLoader(
     tokenized_datasets["validation"], batch_size=8, collate_fn=data_collator
 )
-
 for batch in train_dataloader:
     break
-{k: v.shape for k, v in batch.items()}
-
 
 model = AutoModelForSequenceClassification.from_pretrained(checkpoint, num_labels=2)
 outputs = model(**batch)
@@ -70,3 +67,16 @@ for epoch in range(num_epochs):
         lr_scheduler.step()
         optimizer.zero_grad()
         progress_bar.update(1)
+
+metric = evaluate.load("glue", "mrpc")
+model.eval()
+for batch in eval_dataloader:
+    batch = {k: v.to(device) for k, v in batch.items()}
+    with torch.no_grad():
+        outputs = model(**batch)
+
+    logits = outputs.logits
+    predictions = torch.argmax(logits, dim=-1)
+    metric.add_batch(predictions=predictions, references=batch["labels"])
+
+metric.compute()
